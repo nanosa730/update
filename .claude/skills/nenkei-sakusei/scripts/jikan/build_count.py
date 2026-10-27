@@ -15,15 +15,20 @@ def evs(d):
     ec=gl(ci(MC[d.month])+1); r=4+2*(d.day-1)
     return '・'.join(str(mst[f'{ec}{rr}'].value) for rr in (r,r+1) if mst[f'{ec}{rr}'].value)
 HOL={D(2027,4,29),D(2027,5,3),D(2027,5,4),D(2027,5,5),D(2027,7,19),D(2027,8,11),D(2027,9,20),D(2027,9,23),D(2027,10,11),D(2027,11,3),D(2027,11,23),D(2028,1,1),D(2028,1,10),D(2028,2,11),D(2028,2,23),D(2028,3,20)}
+import copy as _c
+WK={c:_c.copy(y.cell(15,c)._style) for c in (1,2,3)}; WE={c:_c.copy(y.cell(13,c)._style) for c in (1,2,3)}
 chg=PatternFill('solid',fgColor='FFC000')   # 時間割変更（その曜日と違うコマ）
 blue=PatternFill('solid',fgColor='9BC2E6')  # 2年 総合→道徳・学活
 none=PatternFill(fill_type=None)
 row=3; d=D(2027,4,1); rows={}
 while d<=D(2028,3,31):
     rows[d]=row
-    y.cell(row,1,(d-D(1899,12,30)).days); y.cell(row,2,WD[d.weekday()])
+    y.cell(row,1).value=(d-D(1899,12,30)).days; y.cell(row,2).value=WD[d.weekday()]
+    off=d.weekday()>=5 or d in HOL
+    for c_ in (1,2,3):
+        if row>6 or c_<3: y.cell(row,c_)._style=_c.copy((WE if off else WK)[c_])
     if row>6:   # 3〜6行のC・D列は凡例なので残す
-        y.cell(row,3,evs(d) or None)
+        y.cell(row,3).value=evs(d) or None
     for c in range(4,22):
         cell=y.cell(row,c); cell.value=None; cell.fill=none
     ds=str(d)
@@ -65,7 +70,14 @@ for (b0,b1),(a,b) in zip(blocks,seg):
 s['A4']='＜確認テストまで（授業開始4/14）＞'
 s['A44']='＜1月初め～１２年学年末テ＞'
 for v in wb.views: v.firstSheet=0; v.activeTab=0
+for r_ in y.iter_rows(min_row=3,max_row=last,min_col=4,max_col=21):
+    for c_ in r_:
+        if not(c_.fill.fill_type=='solid' and isinstance(c_.fill.fgColor.rgb,str) and c_.fill.fgColor.rgb in('FFFFC000','FF9BC2E6','00FFC000','009BC2E6')): c_.fill=PatternFill(fill_type=None)
 y['W2']='橙＝時間割変更したコマ　水色＝2年の総合を道徳・学活に替えるコマ　「学活」＝授業開始(4/14)前の学級の時間'
 y['W2'].font=Font(size=10,bold=True)
 out='/home/user/update/令和9年度_授業数カウント.xlsx'
+sm=wb['合計']
+for c in ['AJ5','AJ6','AJ14','AJ22','AJ30','AJ38','AJ45','AJ54']:
+    v=sm[c].value
+    if isinstance(v,str) and v.startswith('=MATCH'): sm[c].value='=IFERROR('+v[1:]+',"")'
 wb.save(out); print(out,last,seg)
