@@ -102,8 +102,17 @@ def main(cfg):
             R0[d] = dict(ev=ev, co=co)
 
     HOL = {**holidays(ty), **holidays(ty + 1)}
-    vac = [(P(a), P(b)) for a, b in cfg['vacations']]
-    first_day = P(cfg['first_day'])
+    # 休業日は「名古屋市立小学校及び中学校の管理運営に関する規則」で決まっている
+    #   学年始 4/1〜4/5、夏季 7/21〜8/31、冬季 12/24〜1/6、学年末 3/25〜3/31
+    default_vac = [(D(ty, 4, 1), D(ty, 4, 5)), (D(ty, 7, 21), D(ty, 8, 31)),
+                   (D(ty, 12, 24), D(ty + 1, 1, 6)), (D(ty + 1, 3, 25), D(ty + 1, 3, 31))]
+    vac = [(P(a), P(b)) for a, b in cfg['vacations']] if cfg.get('vacations') else default_vac
+    if cfg.get('first_day'):
+        first_day = P(cfg['first_day'])
+    else:
+        first_day = D(ty, 4, 6)
+        while first_day.weekday() >= 5 or first_day in HOL:
+            first_day += td(days=1)
 
     def school(d):
         return d.weekday() < 5 and d not in HOL and not any(a <= d <= b for a, b in vac) and d >= first_day
