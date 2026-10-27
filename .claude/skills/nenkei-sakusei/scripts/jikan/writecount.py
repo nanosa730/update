@@ -41,6 +41,18 @@ while d<=D(2028,3,31):
         r+=1
     d+=td(days=1)
 last=r-1
+# 2年：総合のコマを道徳・学活に入れ替える日（担任どうしなので時間割のリンク不要）
+SW=json.load(open('swap2.json'))
+blue=PatternFill('solid',fgColor='DDEBF7')
+for rr in range(3,last+1):
+    dv=ws.cell(rr,1).value
+    if dv is None: continue
+    ds=str(dv.date() if hasattr(dv,'date') else dv)
+    for s in SW:
+        if s['date']==ds:
+            c=ws.cell(rr,5+6+s['pos']-1); c.fill=blue
+            from openpyxl.comments import Comment
+            c.comment=Comment(f"2年は総合のかわりに{s['to']}",'年計作成')
 for row in ws.iter_rows(min_row=2,max_row=last):
     for c in row: c.font=FB if c.row==2 else F; c.border=B; c.alignment=Alignment(horizontal='center',vertical='center',shrink_to_fit=True)
 for c in ws[2]: c.fill=hd
@@ -74,6 +86,14 @@ for r_ in ss.iter_rows(min_row=3,max_row=row):
         if c.value is not None: c.border=B; c.alignment=Alignment(horizontal='center'); c.font=FB if c.font.bold else F
 ss.column_dimensions['A'].width=22
 for i in range(2,34): ss.column_dimensions[gl(i)].width=5
+sw=wb.create_sheet('2年 総合→道徳・学活')
+sw.append(['2年：総合のコマ（火6・金6）を道徳・学活に入れ替える日（年14回：学活8・道徳6）'])
+sw.append(['日付','時限','もとのコマ','入れ替え後'])
+for s in SW:
+    d=D.fromisoformat(s['date']); sw.append([d,s['pos'],WD[s['slot'][0]]+Z[s['slot'][1]]+'（総合）',s['to']])
+for rr in sw.iter_rows(min_row=3):
+    rr[0].number_format='m/d'
+sw.column_dimensions['A'].width=12; sw.column_dimensions['C'].width=16; sw.column_dimensions['D'].width=12
 mm=wb.create_sheet('作り方')
 for t in ['令和9年度 授業数カウントの作り方',
  '・年計の行事から、毎日・学年ごとに授業ができる時限を出し、どの曜日の何限の時間割を行うかを割り振った。',
@@ -81,7 +101,9 @@ for t in ['令和9年度 授業数カウントの作り方',
  '・条件2：1限には、どこかの曜日の1限か、6限の道徳・学活・総合（月6・水6・金6）だけを置く（2限を1限に繰り上げない）。',
  '・条件3：1日に使う曜日は2つまで。',
  '・各時限は、全学年同じ曜日・時限を行う（先生の重なりを防ぐため）。',
- '・結果：3年の「2学期期末後〜学年末」だけ差3。ほかはすべて差2以内。']:
+ '・結果：3年の「2学期期末後〜学年末」だけ差3。ほかはすべて差2以内。',
+ '・水色＝2年の総合を道徳・学活に入れ替えるコマ（「2年 総合→道徳・学活」シート）。',
+ '・1年の道徳・学活、2年の美術・技家の不足分は、来年度の時間割ができてから差し替え表を作る（やること.md）。']:
     mm.append([t])
 mm.column_dimensions['A'].width=110
 out='/home/user/update/令和9年度_授業数カウント（案）.xlsx'

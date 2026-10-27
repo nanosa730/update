@@ -58,7 +58,7 @@ months=[4,5,6,7,9,10,11,12,1,2,3]
 EMO={4:'4️⃣',5:'5️⃣',6:'6️⃣',7:'7️⃣',9:'9️⃣',10:'🔟',11:'⑪',12:'⑫',1:'1️⃣',2:'2️⃣',3:'3️⃣'}
 ZEN='０１２３４５６７８９'
 import json as _j
-PLAN=_j.load(open('plan.json')); POSD=_j.load(open('pos.json'))
+PLAN=_j.load(open('plan.json')); SW2=_j.load(open('swap2.json')); POSD=_j.load(open('pos.json'))
 newnames=[]
 for m in months:
     y=2028 if m<=3 else 2027
@@ -111,6 +111,8 @@ for m in months:
                         pos=POSD.get(f'{d}|{g}') or []
                         for p in range(1,7):
                             if p in pos: ws.cell(top+gi,9+p,WD[labs[str(p)][0]]+ZEN[labs[str(p)][1]])
+            for s_ in SW2:
+                if s_['date']==str(d): ws.cell(top+1,9+s_['pos'],s_['mark'])
             if school(d):
                 ws.cell(top+1,16,'Ｂ')
                 s='・'.join(x[0] for x in ev)
