@@ -46,6 +46,7 @@ def positions(d,g):
     cap=5 if d.weekday()==3 else 6
     full=list(range(1,cap+1))
     if g==3 and d>D(2028,3,7): return None
+    if d<D(2027,4,14): return []
     if (d,g) in over:
         v=over[(d,g)]; P=full if v==FULL else list(v)
     elif d in NORMAL: P=full
