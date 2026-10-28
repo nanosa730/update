@@ -20,6 +20,8 @@ WK={c:_c.copy(y.cell(15,c)._style) for c in (1,2,3)}; WE={c:_c.copy(y.cell(13,c)
 chg=PatternFill('solid',fgColor='FFC000')   # 時間割変更（その曜日と違うコマ）
 blue=PatternFill('solid',fgColor='9BC2E6')  # 2年 総合→道徳・学活
 none=PatternFill(fill_type=None)
+# 時間割の授業でないコマに書く行事名（総合などに数える）
+LABEL={('2027-11-19',1):{5:'未来マップ',6:'未来マップ'},('2027-12-13',1):{5:'未来マップ',6:'未来マップ'}}
 row=3; d=D(2027,4,1); rows={}
 while d<=D(2028,3,31):
     rows[d]=row
@@ -47,6 +49,8 @@ while d<=D(2028,3,31):
                 for s in SW:
                     if s['date']==ds and s['pos']==p:
                         c.fill=blue; c.comment=Comment(f"2年は総合のかわりに{s['to']}",'年計作成')
+        for p,lab in LABEL.get((ds,g),{}).items():
+            y.cell(row,base+p-1,lab)
     row+=1; d+=td(days=1)
 last=row-1
 for r in range(last+1,y.max_row+1):
